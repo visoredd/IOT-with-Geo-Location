@@ -1,0 +1,80 @@
+#include "UbidotsMicroESP8266.h"
+#include "DHT.h"
+#define ID  "5a3f4159c03f975f42450a7b"  // Put here your Ubidots variable ID
+#define ID1  "5a44b18bc03f9735f8c7a7e9"  // Put here your Ubidots variable ID
+#define ID2  "5a44b196c03f97357838b32f"  // Put here your Ubidots variable ID
+#define ID3  "5a3f2c00c03f9736c83c706f"
+#define TOKEN  "A1E-icVaXlQHBDQkShqehwU8QRjwaV64N1"  // Put here your Ubidots TOKEN
+#define WIFISSID "Nitesh" // Put here your Wi-Fi SSID
+#define PASSWORD "987654321" // Put here your Wi-Fi password
+#define DHTPIN D1 // what pin we're connected to
+#define DHTTYPE DHT11   // DHT 11
+
+Ubidots client(TOKEN);
+float temp;
+DHT dht(DHTPIN, DHTTYPE);
+void setup() {
+  pinMode(D7,OUTPUT);
+  digitalWrite(D7, LOW);
+  pinMode(D4,OUTPUT);
+  digitalWrite(D4,LOW);
+  pinMode(D5,OUTPUT);
+  digitalWrite(D5,LOW);
+  Serial.begin(9600);
+  dht.begin();
+  client.wifiConnection(WIFISSID, PASSWORD);
+  //client.setDebug(true); // Uncomment this line to set DEBUG on
+}
+
+void loop() {
+  int value = client.getValue(ID);
+  int value1 = client.getValue(ID1);
+  int value2 = client.getValue(ID2);
+  int value3 = client.getValue(ID3);
+  if(value3==HIGH){
+    digitalWrite(D7,value);
+    digitalWrite(D4,value1);
+    digitalWrite(D5,value2);
+    Serial.print("Value: ");
+    Serial.print(value);
+    Serial.print("Value1: ");
+    Serial.print(value1);
+    Serial.print("    Value2: ");
+    Serial.println(value2);
+    delay(100);
+  }
+  else
+  {
+    digitalWrite(D7,LOW);
+    digitalWrite(D4,LOW);
+    digitalWrite(D5,LOW);
+    Serial.print("Value: ");
+    Serial.print(LOW);
+    Serial.print("Value1: ");
+    Serial.print(LOW);
+    Serial.print("    Value2: ");
+    Serial.println(LOW);
+    delay(100);
+  }
+  for (int i=0;i<50;i++)
+  {
+  // Reading temperature or humidity takes about 250 milliseconds!
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  // Read temperature as Celsius (the default)
+        temp += dht.readTemperature();
+        delay(10);
+ // Check if any reads failed and exit early (to try again).
+  if (isnan(temp)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
+  }
+
+  }
+   temp = temp/50;
+    {
+    client.add("LAB TEMPERATURE",temp);
+    client.sendAll(true);
+    delay(10000);
+    }
+  delay(100);
+}
